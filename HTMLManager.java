@@ -26,4 +26,35 @@ public class HTMLManager {
      }
      return result;
   }
+
+  public void fixHTML() {
+    Stack<HTMLTag> stack = new Stack<HTMLTag>();
+    ueue<HTMLTag> fixed = new LinkedList<HTMLTag>();
+    int size = tags.size();
+ 
+    for (int i = 0; i < size; i++) {
+      HTMLTag current = tags.remove();
+      if (current.isSelfClosing()) {
+        fixed.add(current);
+      } else if (current.isOpening()) {
+        fixed.add(current);
+        stack.push(current);
+      } else if (current.isClosing()) {
+        // Closing tag, check if it matches the top of the stack
+        if (!stack.isEmpty() && stack.peek().matches(current)) {
+          fixed.add(current);
+          stack.pop();
+        } else if (!stack.isEmpty() && !stack.peek().matches(current)) {
+          // Wrong closing tag, add the correct closing tag for the top opener
+          fixed.add(stack.pop().getMatching());
+          tags.add(current);
+          size++; 
+        }
+      }
+    }
+  } 
+
+  while (!stack.isEmpty()) {
+      fixed.add(stack.pop().getMatching());
+  }
 }
