@@ -1,60 +1,68 @@
 import java.util.*;
 
 public class HTMLManager {
-  private Queue<HTMLTag> tags;
-  
-  public HTMLManager(Queue<HTMLTag> html){
-     if(html == null) {
-        throw new IllegalArgumentException("nothing");
-     } else {
-        while(!html.isEmpty()){
-           tags.add(html.remove());
-        }
-     }
-  }
-  public Queue<HTMLTag> getTags() {
-     return tags;
-  }
-  
-  public String toString() {
-     String result = "";
-     int size = tags.size();
-     for(int i = 0; i < size; i++) {
-        HTMLTag val = tags.remove();
-        result += tags.toString().trim();
-        tags.add(val);
-     }
-     return result;
-  }
-
-  public void fixHTML() {
-    Stack<HTMLTag> stack = new Stack<HTMLTag>();
-    ueue<HTMLTag> fixed = new LinkedList<HTMLTag>();
-    int size = tags.size();
- 
-    for (int i = 0; i < size; i++) {
-      HTMLTag current = tags.remove();
-      if (current.isSelfClosing()) {
-        fixed.add(current);
-      } else if (current.isOpening()) {
-        fixed.add(current);
-        stack.push(current);
-      } else if (current.isClosing()) {
-        // Closing tag, check if it matches the top of the stack
-        if (!stack.isEmpty() && stack.peek().matches(current)) {
-          fixed.add(current);
-          stack.pop();
-        } else if (!stack.isEmpty() && !stack.peek().matches(current)) {
-          // Wrong closing tag, add the correct closing tag for the top opener
-          fixed.add(stack.pop().getMatching());
-          tags.add(current);
-          size++; 
-        }
+   private Queue<HTMLTag> tags;
+   
+   // this method is the constructor that takes a queue of HTMLTags, throws IllegalArgumentException if null,
+   // and copies all tags into a new queue 
+   public HTMLManager(Queue<HTMLTag> html) {
+      if (html == null) {
+         throw new IllegalArgumentException("nothing");
       }
-    }
-  } 
+      this.tags = new LinkedList<HTMLTag>();
+      for (HTMLTag tag : html) {
+            this.tags.add(tag);
+      }
+   }
 
-  while (!stack.isEmpty()) {
-      fixed.add(stack.pop().getMatching());
-  }
+   // this method returns the queue of HTMLTags currently being managed
+   public Queue<HTMLTag> getTags() {
+      return tags;
+   }
+
+   // this method returns a string of all tags in the queue without changing the queue's state
+   public String toString() {
+      String result = "";
+      int size = tags.size();
+      for (int i = 0; i < size; i++) {
+         HTMLTag val = tags.remove();
+         result += val.toString().trim();
+         tags.add(val);
+      }
+      return result;
+   }
+
+   // this method fixes the wrong HTML by processing each tag using a stack to track unmatched
+   // opening tags, correcting mismatched closing tags, and closing leftovers that arent matched yet
+   public void fixHTML() {
+      Stack<HTMLTag> stack = new Stack<HTMLTag>();
+      Queue<HTMLTag> fixed = new LinkedList<HTMLTag>();
+      int size = tags.size();
+
+      for (int i = 0; i < size; i++) {
+         HTMLTag current = tags.remove();
+         if (current.isSelfClosing()) {
+            fixed.add(current);
+         } else if (current.isOpening()) {
+            fixed.add(current);
+            stack.push(current);
+         } else if (current.isClosing()) {
+            if (!stack.isEmpty() && stack.peek().matches(current)) {
+            fixed.add(current);
+            stack.pop();
+         } else if (!stack.isEmpty() && !stack.peek().matches(current)) {
+            fixed.add(stack.pop().getMatching());
+            tags.add(current);
+            size++;
+            }
+         }
+      }
+
+      // Close any leftover unclosed opening tags still on the stack
+      while (!stack.isEmpty()) {
+         fixed.add(stack.pop().getMatching());
+      }
+      
+      this.tags = fixed;
+    }
 }
