@@ -2,9 +2,9 @@ import java.util.*;
 
 public class HTMLManager {
    private Queue<HTMLTag> tags;
-   
+
    // this method is the constructor that takes a queue of HTMLTags, throws IllegalArgumentException if null,
-   // and copies all tags into a new queue 
+   // and copies all tags into a new queue
    public HTMLManager(Queue<HTMLTag> html) {
       if (html == null) {
          throw new IllegalArgumentException("nothing");
@@ -31,43 +31,32 @@ public class HTMLManager {
       }
       return result;
    }
-
    // this method fixes the wrong HTML by processing each tag using a stack to track unmatched
    // opening tags, correcting mismatched closing tags, and closing leftovers that arent matched yet
    public void fixHTML() {
       Stack<HTMLTag> stack = new Stack<HTMLTag>();
-      Queue<HTMLTag> fixed = new LinkedList<HTMLTag>();
       int size = tags.size();
 
       for (int i = 0; i < size; i++) {
          HTMLTag current = tags.remove();
          if (current.isSelfClosing()) {
-            fixed.add(current);
+            tags.add(current);
          } else if (current.isOpening()) {
-            fixed.add(current);
+            tags.add(current);
             stack.push(current);
          } else if (current.isClosing()) {
             if (!stack.isEmpty() && stack.peek().matches(current)) {
-            fixed.add(current);
-            stack.pop();
-         } else if (!stack.isEmpty() && !stack.peek().matches(current)) {
-            fixed.add(stack.pop().getMatching());
-            tags.add(current);
-            size++;
+               tags.add(current);
+               stack.pop();
             }
          }
       }
-
-      // Close any leftover unclosed opening tags still on the stack
+   // Close any leftover unclosed opening tags still on the stack
       while (!stack.isEmpty()) {
-         fixed.add(stack.pop().getMatching());
+         tags.add(stack.pop().getMatching());
       }
-      
-      this.tags = fixed;
-    }
-}
-
-/* PROGRAM OUTPUT: 
+   }
+}/* PROGRAM OUTPUT: 
 ----jGRASP exec: java -ea HTMLChecker
 ===============================
 Processing tests/test3.html...
